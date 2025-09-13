@@ -41,7 +41,6 @@ jobs:
                     {\"role\": \"user\", \"content\": \"$DIFF\"}
                   ]
                 }")
-          echo "$DIFF"
           echo "### Raw OpenRouter response ###"
           echo "$RESPONSE"           # <— print to Actions log
           echo "### End response ###"
