@@ -35,7 +35,7 @@ jobs:
             -H "HTTP-Referer: $SITE_URL" \
             -H "X-Title: $SITE_NAME" \
             -d "{
-                  \"model\": \"openai/gpt-4.1-mini\",
+                  \"model\": \"openai/gpt-4.0-mini\",
                   \"messages\": [
                     {\"role\": \"system\", \"content\": \"You are an experienced software engineer reviewing a GitHub pull request diff. Provide concise review comments and suggestions.\"},
                     {\"role\": \"user\", \"content\": \"Give me a name for the project\"}
