@@ -41,6 +41,7 @@ jobs:
                     {\"role\": \"user\", \"content\": \"$DIFF\"}
                   ]
                 }")
+          echo "$DIFF" > debug_diff.txt  # <— save diff for debugging
           echo "### Raw OpenRouter response ###"
           echo "$RESPONSE"           # <— print to Actions log
           echo "### End response ###"
