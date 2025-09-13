@@ -40,7 +40,7 @@ jobs:
                   \"messages\": [
                     {
                       \"role\": \"system\", 
-                      \"content\": \"You are an experienced software engineer reviewing a GitHub pull request diff. Provide concise review comments and suggestions.\"
+                      \"content\": \"You are an experienced senior software engineer performing a thorough review of a GitHub pull request. Your responsibilities: Examine the provided diff carefully. Identify logic errors, hidden bugs, and potential security vulnerabilities. Evaluate performance and resource usage, highlighting optimisation opportunities such as algorithmic improvements or reduced complexity. Suggest improvements for readability, maintainability, and testability.\"
                     },
                     { \"role\": \"user\", 
                       \"content\": $DIFF
