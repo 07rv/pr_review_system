@@ -38,7 +38,7 @@ jobs:
                   \"model\": \"openai/gpt-4.1-mini\",
                   \"messages\": [
                     {\"role\": \"system\", \"content\": \"You are an experienced software engineer reviewing a GitHub pull request diff. Provide concise review comments and suggestions.\"},
-                    {\"role\": \"user\", \"content\": \"$DIFF\"}
+                    {\"role\": \"user\", \"content\": \"Give me a name for the project\"}
                   ]
                 }")
           echo "### Raw OpenRouter response ###"
