@@ -1,5 +1,4 @@
-# .github/workflows/openai-pr-reviewer.yml
-name: OpenAI PR Reviewer
+name: OpenRouter PR Reviewer
 
 on:
   pull_request:
@@ -13,47 +12,54 @@ jobs:
       pull-requests: write
 
     steps:
-      # 1️⃣  Check out the PR code
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2️⃣  Generate the PR diff
-      - name: Get pull request diff
+      - name: Collect PR diff
         run: |
           git fetch origin ${{ github.base_ref }}
           git diff origin/${{ github.base_ref }} > pr_diff.txt
 
-      # 3️⃣  Call the OpenAI API
-      - name: Call OpenAI API
-        id: review
+      - name: Call OpenRouter API
+        id: call-ai
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SITE_URL: https://your-site.example # optional
+          SITE_NAME: MyGitHubPRReviewer # optional
         run: |
-          # Read diff and escape quotes/newlines for JSON
-          DIFF=$(sed 's/"/\\"/g' pr_diff.txt | tr '\n' ' ')
+          DIFF=$(jq -Rs . pr_diff.txt)
+
           RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
-            -H "Content-Type: application/json" \
             -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -H "HTTP-Referer: $SITE_URL" \
+            -H "X-Title: $SITE_NAME" \
             -d "{
-                  \"model\": \"openai/gpt-oss-120b:free\",
+                  \"model\": \"openai/gpt-oss-20b:free\",
                   \"messages\": [
                     {\"role\": \"system\", \"content\": \"You are an experienced software engineer reviewing a GitHub pull request diff. Provide concise review comments and suggestions.\"},
-                    {\"role\": \"user\", \"content\": \"$DIFF\"}
+                    {\"role\": \"user\", \"content\": $DIFF}
                   ]
                 }")
+          echo "### Raw OpenRouter response ###"
+          echo "$DIFF"           # <— print to Actions log
+          echo "### End response ###"
           echo "review_body<<EOF" >> $GITHUB_OUTPUT
           echo "$RESPONSE" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # 4️⃣  Post the AI review as a comment on the PR
-      - name: Post review comment
+      - name: Post AI review as comment
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = JSON.parse(process.env.REVIEW_BODY || process.env.review_body);
-            const comment = output.choices[0].message.content;
+            const output = JSON.parse(process.env.REVIEW_BODY || "{}");
+            if (output.error) {
+              core.setFailed(`OpenRouter API error: ${output.error.message}`);
+              return;
+            }
+            const comment = output.choices?.[0]?.message?.content || "No review generated.";
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -61,4 +67,4 @@ jobs:
               body: comment
             });
         env:
-          REVIEW_BODY: ${{ steps.review.outputs.review_body }}
+          REVIEW_BODY: ${{ steps.call-ai.outputs.review_body }}

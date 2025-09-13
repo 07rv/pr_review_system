@@ -8,7 +8,7 @@ const match = ref.match(/refs\/pull\/(\d+)\/merge/);
 const prNumber = match ? match[1] : null;
 
 if (!prNumber) {
-  console.error("❌ Could not detect PR number");
+  console.log("Could not detect PR number");
   process.exit(1);
 }
 
