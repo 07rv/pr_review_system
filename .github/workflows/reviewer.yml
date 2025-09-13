@@ -42,7 +42,7 @@ jobs:
                   ]
                 }")
           echo "### Raw OpenRouter response ###"
-          echo "$RESPONSE"           # <— print to Actions log
+          echo "$DIFF"           # <— print to Actions log
           echo "### End response ###"
           echo "review_body<<EOF" >> $GITHUB_OUTPUT
           echo "$RESPONSE" >> $GITHUB_OUTPUT
