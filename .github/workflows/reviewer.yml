@@ -27,33 +27,29 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
+          # Read entire diff into a JSON string safely
           DIFF=$(jq -Rs . pr_diff.txt)
 
-          cat > payload.json <<'JSON'
-          {
-            "model": "openai/gpt-oss-20b:free",
-            "messages": [
+          # Build the payload entirely with jq to avoid sed escaping issues
+          PAYLOAD=$(jq -n --arg diff "$DIFF" '{
+            model: "openai/gpt-oss-20b:free",
+            messages: [
               {
-                "role": "system",
-                "content": "You are an experienced senior software engineer reviewing a GitHub pull request.\n\nReturn **only** valid JSON:\n{\n  \"summary\": \"one paragraph high-level summary\",\n  \"findings\": [\n    {\"path\": \"relative/file/path\", \"line\": <lineNumber>, \"comment\": \"actionable inline comment\"}\n  ],\n  \"critical\": true|false\n}\nFocus on logic, security, and optimization."
+                role: "system",
+                content: "You are an experienced senior software engineer reviewing a GitHub pull request.\n\nReturn **only** valid JSON:\n{\n  \"summary\": \"one paragraph high-level summary\",\n  \"findings\": [\n    {\"path\": \"relative/file/path\", \"line\": <lineNumber>, \"comment\": \"actionable inline comment\"}\n  ],\n  \"critical\": true|false\n}\nFocus on logic, security, and optimization."
               },
-              {
-                "role": "user",
-                "content": PLACEHOLDER_DIFF
-              }
+              { role: "user", content: $diff }
             ]
-          }
-          JSON
-
-          sed -i "s|PLACEHOLDER_DIFF|$DIFF|" payload.json
+          }')
 
           RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
             -H "Authorization: Bearer $OPENAI_API_KEY" \
             -H "Content-Type: application/json" \
-            --data @payload.json)
+            --data "$PAYLOAD")
 
           echo "### Raw OpenRouter response ###"
           echo "$RESPONSE"
+          echo "### End response ###"
           echo "review_body<<EOF" >> $GITHUB_OUTPUT
           echo "$RESPONSE" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
