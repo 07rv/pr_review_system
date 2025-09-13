@@ -8,7 +8,7 @@ const match = ref.match(/refs\/pull\/(\d+)\/merge/);
 const prNumber = match ? match[1] : null;
 
 if (!prNumber) {
-  console.error("Could not detect PR number");
+  console.log("Could not detect PR number");
   process.exit(1);
 }
 
@@ -30,12 +30,12 @@ const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
   body: JSON.stringify({
     model: "gpt-4o-mini",
     messages: [
+      { role: "user", content: `Review this PR diff:\n${diff}` },
       {
         role: "system",
         content:
           "You are an expert AI code reviewer. Review for bugs, security issues, maintainability, and improvements.",
       },
-      { role: "user", content: `Review this PR diff:\n${diff}` },
     ],
   }),
 });
@@ -56,4 +56,4 @@ await fetch(
   }
 );
 
-console.log(`✅ AI Review posted on PR #${prNumber}`);
+console.log(`AI Review posted on PR #${prNumber}`);
